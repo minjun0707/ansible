@@ -1,0 +1,6 @@
+- name: Export environment variables
+  shell: |
+    export PROFILE='dev'
+  args:
+    executable: /bin/bash
+  become: yes

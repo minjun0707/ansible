@@ -1,0 +1,23 @@
+- name: Clone kic-library-react repository
+  git:
+    repo: 'https://github.com/kakaoenterprise/kic-library-react'
+    dest: '~/kic-library-react'
+    force: yes
+
+- name: Run install-requirements.sh
+  command: bash install-requirements.sh
+  args:
+    chdir: ~/kic-library-react
+
+- name: Include web-env.yml tasks
+  include_tasks: web-env.yml
+
+- name: Run web-build.sh
+  command: bash web-build.sh
+  args:
+    chdir: ~/kic-library-react/client
+
+- name: Start the web application
+  command: bash start-web.sh
+  args:
+    chdir: ~/kic-library-react/client

@@ -1,0 +1,108 @@
+## web sg
+
+- name: Create security group
+  openstack.cloud.security_group:
+    cloud: kakao-cloud
+    state: present
+    name: "web-sg"
+  register: security_group
+
+- name: Add security group rule to allow SSH
+  openstack.cloud.security_group_rule:
+    cloud: kakao-cloud
+    security_group: "{{ security_group.security_group.id }}"
+    protocol: tcp
+    port_range_min: 22
+    port_range_max: 22
+    direction: ingress
+    remote_ip_prefix: "0.0.0.0/0"
+
+- name: Add security group rule to allow HTTP
+  openstack.cloud.security_group_rule:
+    cloud: kakao-cloud
+    security_group: "{{ security_group.security_group.id }}"
+    protocol: tcp
+    port_range_min: 80
+    port_range_max: 80
+    direction: ingress
+    remote_ip_prefix: "0.0.0.0/0"
+
+- name: Create boot volume
+  openstack.cloud.volume:
+    cloud: kakao-cloud
+    state: present
+    display_name: "web_volume"
+    size: 50
+    bootable: true
+    image: "{{ vm.image_id }}"
+  register: web_boot_volume
+
+- name: Create web-VM using boot volume
+  openstack.cloud.server:
+    state: present
+    cloud: kakao-cloud
+    name: "web-vm"
+    flavor: "{{ vm.flavor }}"
+    key_name: "{{ vm.key_pair }}"
+    boot_volume: "{{ web_boot_volume.volume.id }}"
+    security_groups:
+      - "{{ security_group.security_group.id }}"
+    nics:
+      - net-id: "{{ web_network_id }}"
+    wait: yes
+  register: web_vm
+
+  ## floating IP
+- name: Allocate a web floating IP
+  openstack.cloud.floating_ip:
+    cloud: kakao-cloud
+    state: present
+    server: "{{ web_vm.server.id }}"
+    network: "cc0f895b-2fbe-4c34-b6c9-3455b8880f26"
+  register: web_floating_ip
+
+- name: Set web floating IP
+  set_fact:
+    web_floating_ip_var: "{{web_floating_ip.floating_ip.floating_ip_address}}"
+
+# - name: Debug web_vm variable
+#   debug:
+#     var: web_vm
+
+- name: Add new VM to inventory with keypair content
+  add_host:
+    name: web-vm
+    ansible_host: "{{ web_floating_ip.floating_ip.floating_ip_address }}"
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: "{{ vm.key_pair_path }}"
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+- name: Remove specific IP from known_hosts
+  lineinfile:
+    path: "~/.ssh/known_hosts"
+    state: absent
+    regexp: "^{{ web_floating_ip.floating_ip.floating_ip_address }}[ ,]"
+
+- name: Wait for SSH to be available from local
+  local_action:
+    module: wait_for
+    host: "{{ web_floating_ip.floating_ip.floating_ip_address }}"
+    port: 22
+    delay: 10
+    timeout: 120
+    state: started
+  register: result
+ 
+    
+    
+# - name: Initialize VM with application
+#   hosts: web-vm
+#   become: yes
+#   tasks:
+#     - name: Export APP_ENDPOINT environment variable
+#       shell: |
+#         export APP_ENDPOINT="{{ hostvars['app-vm']['ansible_host'] }}"
+#       args:
+#         executable: /bin/bash  
+
+#     - import_tasks: web-init.yml

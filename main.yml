@@ -1,0 +1,43 @@
+- name: Create keypair 
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ./variables.yml
+  tasks:
+    - name: Create keypair 
+      include_tasks: keypair.yml
+
+- name: Set Subnet list
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ./variables.yml
+  tasks:
+    - name: Subnet list
+      include_tasks: subnet.yml
+
+- name: provisioning kc web & app
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ./variables.yml
+  tasks:
+    - name: web
+      include_tasks: web.yml
+    - name: bastion
+      include_tasks: bastion.yml
+    - name: app
+      include_tasks: app.yml
+
+
+- name: Initialize VM with application
+  hosts: web-vm
+  become: yes
+  tasks:
+    - include_tasks: web-init.yml
+
+- name: Initialize VM with application
+  hosts: app-vm
+  become: yes
+  tasks:
+    - include_tasks: app-init.yml
