@@ -1,36 +1,71 @@
-- name: Clone the kic-library repository
+- name: Clone kic-library-react repository
   git:
-    repo: 'https://github.com/kakaoenterprise/kic-library-react'
-    dest: '~/kakaocloud-library'
+    repo: 'https://github.com/minjun0707/kakaocloud-library'
+    dest: './'
     force: yes
 
-- name: Install requirements
+- name: Run install-requirements.sh
   command: bash install-requirements.sh
   args:
-    chdir: ~/kakaocloud-library
-    
+    chdir: './kakaocloud-library'
+
 - name: Include app-env.yml tasks
   include_tasks: app-env.yml
 
-- name: Build the app
-  command: bash app-build.sh
+- name: Export environment variables
+  shell: |
+    export PROFILE='local'
+    export MYSQL_HOST='localhost'
+    export DB_NAME='library'
+    export DB_USERNAME='user'
+    export DB_PASSWORD='password'
   args:
-    chdir: ~/kakaocloud-library
+    executable: /bin/bash
+  become: yes
 
-- name: Start the app
-  command: bash start-app.sh
-  args:
-    chdir: ~/kakaocloud-library
 
-# - name: Clone the kic-library-react repository
+- name: Run Docker container
+  ansible.builtin.command:
+    cmd: >
+      docker run -it \
+      -e MYSQL_HOST=${MYSQL_HOST} \
+      -e DB_NAME=${DB_NAME} \
+      -e DB_USERNAME=${DB_USERNAME} \
+      -e DB_PASSWORD=${DB_PASSWORD} \
+    -p 8080:8080 \
+    --name kakaocloud-library-server -d \
+    $(docker build -q -f ./server/deploy/Dockerfile ./server)
+
+
+
+# sudo docker run -it \
+#   -e MYSQL_HOST=${MYSQL_HOST} \
+#   -e DB_NAME=${DB_NAME} \
+#   -e DB_USERNAME=${DB_USERNAME} \
+#   -e DB_PASSWORD=${DB_PASSWORD} \
+#   -e PROFILE=${PROFILE} \
+# -p 8080:8080 \
+# --name kakaocloud-library-server -d \
+# $(sudo docker build -q -f ./server/deploy/Dockerfile ./server)
+
+
+
+
+
+
+
+
+
+# - name: Clone the kic-library repository
 #   git:
 #     repo: 'https://github.com/kakaoenterprise/kic-library-react'
-#     dest: '~/kic-library-react'
+#     dest: '~/kakaocloud-library'
+#     force: yes
 
 # - name: Install requirements
 #   command: bash install-requirements.sh
 #   args:
-#     chdir: ~/kic-library-react
+#     chdir: ~/kakaocloud-library
     
 # - name: Include app-env.yml tasks
 #   include_tasks: app-env.yml
@@ -38,12 +73,13 @@
 # - name: Build the app
 #   command: bash app-build.sh
 #   args:
-#     chdir: ~/kic-library-react
+#     chdir: ~/kakaocloud-library
 
 # - name: Start the app
 #   command: bash start-app.sh
 #   args:
-#     chdir: ~/kic-library-react
+#     chdir: ~/kakaocloud-library
+
 
 
 
