@@ -21,3 +21,46 @@
   command: bash start-web.sh
   args:
     chdir: ~/kic-library-react/client
+
+
+
+# - name: Install Docker Compose
+#   ansible.builtin.apt:
+#     name: docker-compose
+#     state: present
+
+# - name: Clone the kic-library repository
+#   git:
+#     repo: 'https://github.com/kakaoenterprise/kakaocloud-tutorials -b kakaocloud-library'
+#     dest: '~/'
+#     force: yes
+
+# - name: Install requirements
+#   command: bash install-requirements.sh
+#   args:
+#     chdir: '~/kakaocloud-library'
+
+# - name: Run docker-compose up -d
+#   ansible.builtin.shell: docker-compose up -d
+#   args:
+#     chdir: '~/'
+    
+# # - name: Include app-env.yml tasks
+# #   include_tasks: app-env.yml
+
+# - name: Run Docker container
+#   ansible.builtin.command:
+#     cmd: >
+#       docker run -it
+#       -e MYSQL_HOST={{ MYSQL_HOST }}
+#       -e DB_NAME={{ DB_NAME }}
+#       -e DB_USERNAME={{ DB_USERNAME }}
+#       -e DB_PASSWORD={{ DB_PASSWORD }}
+#       -p 8080:8080
+#       --name kakaocloud-library-server -d
+#       {{ build_output.stdout }}
+
+
+
+## sudo usermod -aG docker $USER
+## newgrp docker

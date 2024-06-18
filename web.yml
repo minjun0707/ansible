@@ -51,7 +51,7 @@
       - net-id: "{{ web_network_id }}"
     wait: yes
   register: web_vm
-
+  
   ## floating IP
 - name: Allocate a web floating IP
   openstack.cloud.floating_ip:
@@ -65,16 +65,12 @@
   set_fact:
     web_floating_ip_var: "{{web_floating_ip.floating_ip.floating_ip_address}}"
 
-# - name: Debug web_vm variable
-#   debug:
-#     var: web_vm
-
 - name: Add new VM to inventory with keypair content
   add_host:
     name: web-vm
     ansible_host: "{{ web_floating_ip.floating_ip.floating_ip_address }}"
     ansible_user: ubuntu
-    ansible_ssh_private_key_file: "{{ vm.key_pair_path }}"
+    ansible_ssh_private_key_file: "{{ vm.key_pair }}.pem"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
 - name: Remove specific IP from known_hosts

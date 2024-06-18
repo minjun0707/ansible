@@ -15,7 +15,7 @@
 - name: Save private key to file
   copy:
     content: "{{ keypair.keypair.private_key }}"
-    dest: "{{ keypair_path }}"
+    dest: "{{ vm.key_pair}}.pem"
     mode: '0600'
   when: keypair_info.keypairs | length == 0
 

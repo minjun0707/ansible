@@ -1,6 +1,6 @@
 - name: Export environment variables
   shell: |
-    export PROFILE='dev'
+    export APP_ENDPOINT="http://10.0.2.137:80"
   args:
     executable: /bin/bash
   become: yes

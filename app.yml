@@ -1,30 +1,45 @@
     ## app sg
+
+    - name: Fetch public IP using ipify
+      ipify_facts:
+      register: ipify_result
+
     - name: Create security group
       openstack.cloud.security_group:
         cloud: kakao-cloud
         state: present
         name: "app-sg"
-      register: security_group
+      register: app_sg
 
     - name: Add security group rule to allow SSH
       openstack.cloud.security_group_rule:
         cloud: kakao-cloud
-        security_group: "{{ security_group.security_group.id }}"
+        security_group: "{{ app_sg.security_group.id }}"
         protocol: tcp
         port_range_min: 22
         port_range_max: 22
         direction: ingress
-        remote_ip_prefix: "{{bastion_floating_ip_var}}"
+        remote_ip_prefix: "{{ ipify_result.ansible_facts.ipify_public_ip }}/32"
+
+    - name: Add security group rule to allow SSH
+      openstack.cloud.security_group_rule:
+        cloud: kakao-cloud
+        security_group: "{{ app_sg.security_group.id }}"
+        protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+        direction: ingress
+        remote_ip_prefix: "{{bastion_floating_ip_var}}/32"
 
     - name: Add security group rule to allow HTTP
       openstack.cloud.security_group_rule:
         cloud: kakao-cloud
-        security_group: "{{ security_group.security_group.id }}"
+        security_group: "{{ app_sg.security_group.id }}"
         protocol: tcp
         port_range_min: 80
         port_range_max: 80 
         direction: ingress
-        remote_ip_prefix: "{{web_floating_ip_var}}"
+        remote_ip_prefix: "{{web_floating_ip_var}}/32"
 
     - name: Create boot volume
       openstack.cloud.volume:
@@ -45,45 +60,37 @@
         key_name: "{{ vm.key_pair }}"
         boot_volume: "{{ app_boot_volume.volume.id }}"
         security_groups:
-          - "{{ security_group.security_group.id }}"
+          - "{{ app_sg.security_group.id }}"
         nics:
           - net-id: "{{ app_network_id }}"
         wait: yes
+        auto_ip: false
       register: app_vm
+
+    - name: Set app fixed IP address as a fact
+      set_fact:
+        app_fixed_ip_var: "{{ item.addr }}"
+      when: item["OS-EXT-IPS:type"] == "fixed"
+      with_items: "{{ app_vm.server.addresses.values() | flatten(levels=1) }}"    
+
+    - name: Debug app fixed IP
+      debug:
+        var: app_fixed_ip_var
 
     - name: Add app VM to inventory
       add_host:
         name: app-vm
-        ansible_host: "{{app_fixed_ip_var}}"
+        ansible_host: "{{ app_fixed_ip_var }}"
         ansible_user: ubuntu
-        ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q ubuntu@{{bastion_floating_ip_var}}"'
+        ansible_ssh_private_key_file: "{{ vm.key_pair }}.pem"
+        ansible_ssh_common_args: >-
+          -o ProxyCommand="ssh -i {{ vm.key_pair }}.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W {{ app_fixed_ip_var }}:22 -q ubuntu@{{ bastion_floating_ip_var }}"
+          -o StrictHostKeyChecking=no
+          -o UserKnownHostsFile=/dev/null
 
 
     - name: Remove specific IP from known_hosts
       lineinfile:
         path: "~/.ssh/known_hosts"
         state: absent
-        regexp: "^{{ app_floating_ip.floating_ip.floating_ip_address }}[ ,]"
-
-    - name: Wait for SSH to be available from local
-      local_action:
-        module: wait_for
-        host: "{{ bastion_floating_ip.floating_ip.floating_ip_address }}"
-        port: 22
-        delay: 10
-        timeout: 120
-        state: started
-      register: result
-    
-    
-# - name: Initialize VM with application
-#   hosts: web-vm
-#   become: yes
-#   tasks:
-#     - name: Export APP_ENDPOINT environment variable
-#       shell: |
-#         export APP_ENDPOINT="{{ hostvars['app-vm']['ansible_host'] }}"
-#       args:
-#         executable: /bin/bash  
-
-#     - import_tasks: web-init.yml
+        regexp: "^{{ app_fixed_ip_var}}[ ,]"

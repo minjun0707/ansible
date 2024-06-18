@@ -2,10 +2,6 @@
   command: openstack --os-cloud kakao-cloud subnet list -f json
   register: subnet_list_output
 
-# - name: Debug subnet_list_output
-#   debug:
-#     var: subnet_list_output
-
 - name: Parse subnet list and find matching network address
   set_fact:
     web_network_id: "{{ item.Network }}"

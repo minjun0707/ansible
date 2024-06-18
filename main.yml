@@ -35,9 +35,11 @@
   become: yes
   tasks:
     - include_tasks: web-init.yml
+    - include_tasks: web-env.yml
 
 - name: Initialize VM with application
   hosts: app-vm
   become: yes
   tasks:
     - include_tasks: app-init.yml
+    - include_tasks: app-env.yml
