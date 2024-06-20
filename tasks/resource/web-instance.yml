@@ -2,7 +2,7 @@
   openstack.cloud.security_group:
     cloud: kakao-cloud
     state: present
-    name: "web-sg"
+    name: "ansible-web-sg"
   register: web_security_group
 
 - name: Add SSH rule to web-instance security group
@@ -29,7 +29,7 @@
   openstack.cloud.server:
     state: present
     cloud: kakao-cloud
-    name: "web-vm"
+    name: "ansible-web"
     flavor: "{{ vm.flavor }}"
     image: "{{ vm.image_id }}"
     key_name: "{{ vm.key_pair }}"

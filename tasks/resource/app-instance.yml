@@ -6,7 +6,7 @@
   openstack.cloud.security_group:
     cloud: kakao-cloud
     state: present
-    name: "app-sg"
+    name: "ansible-app-sg"
   register: app_security_group
 
 - name: Add SSH rule for user IP to app-instance security group
@@ -43,7 +43,7 @@
   openstack.cloud.server:
     state: present
     cloud: kakao-cloud
-    name: "app-vm"
+    name: "ansible-app"
     flavor: "{{ vm.flavor }}"
     image: "{{ vm.image_id }}"
     key_name: "{{ vm.key_pair }}"

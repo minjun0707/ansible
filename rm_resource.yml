@@ -8,19 +8,19 @@
     - name: Find server by name
       openstack.cloud.server_info:
         cloud: kakao-cloud
-        name: "web-vm"
+        name: "ansible-web"
       register: web_vm
       
     - name: Find server by name
       openstack.cloud.server_info:
         cloud: kakao-cloud
-        name: "app-vm"
+        name: "ansible-app"
       register: app_vm
 
     - name: Find server by name
       openstack.cloud.server_info:
         cloud: kakao-cloud
-        name: "bastion-vm"
+        name: "ansible-bastion"
       register: bastion_vm 
 
     # 
@@ -84,21 +84,21 @@
       openstack.cloud.server:
         cloud: kakao-cloud
         state: absent
-        name: "app-vm"
+        name: "ansible-app"
       when: app_vm.servers is defined and app_vm.servers | length > 0
 
     - name: Delete server if exists
       openstack.cloud.server:
         cloud: kakao-cloud
         state: absent
-        name: "bastion-vm"
+        name: "ansible-bastion"
       when: bastion_vm.servers is defined and bastion_vm.servers | length > 0
 
     - name: Delete server if exists
       openstack.cloud.server:
         cloud: kakao-cloud
         state: absent
-        name: "web-vm"
+        name: "ansible-web"
       when: web_vm.servers is defined and web_vm.servers | length > 0
 
     # 
@@ -107,9 +107,9 @@
     - name: Define security group names
       set_fact:
         security_group_names:
-          - app-sg
-          - bastion-sg
-          - web-sg
+          - ansible-app-sg
+          - ansible-bastion-sg
+          - ansible-web-sg
 
     - name: Delete security groups
       openstack.cloud.security_group:
