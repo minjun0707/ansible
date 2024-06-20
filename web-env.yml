@@ -1,6 +1,0 @@
-- name: Export environment variables
-  shell: |
-    export SERVER_ENDPOINT="{{ hostvars['app-vm'].app_fixed_ip_var }}"
-  args:
-    executable: /bin/bash
-  become: yes

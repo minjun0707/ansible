@@ -1,0 +1,122 @@
+- name: Delete resources created on Ansible
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ./variables.yml
+  tasks:    
+    - name: Find server by name
+      openstack.cloud.server_info:
+        cloud: kakao-cloud
+        name: "app-vm"
+      register: app_vm
+
+    - name: Delete server if exists
+      openstack.cloud.server:
+        cloud: kakao-cloud
+        state: absent
+        name: "app-vm"
+      when: app_vm.servers is defined and app_vm.servers | length > 0
+
+    - name: Find server by name
+      openstack.cloud.server_info:
+        cloud: kakao-cloud
+        name: "bastion-vm"
+      register: bastion_vm
+
+    - name: Delete server if exists
+      openstack.cloud.server:
+        cloud: kakao-cloud
+        state: absent
+        name: "bastion-vm"
+      when: bastion_vm.servers is defined and bastion_vm.servers | length > 0
+
+    - name: Find server by name
+      openstack.cloud.server_info:
+        cloud: kakao-cloud
+        name: "web-vm"
+      register: web_vm
+
+    - name: Delete server if exists
+      openstack.cloud.server:
+        cloud: kakao-cloud
+        state: absent
+        name: "web-vm"
+      when: web_vm.servers is defined and web_vm.servers | length > 0
+
+
+    - name: Extract floating IP address for web_vm
+      set_fact:
+        web_floating_ip: "{{ item.addr }}"
+      with_items: "{{ web_vm.servers[0].addresses | json_query('*[*]') }}"
+      ignore_errors: yes
+      when: item['OS-EXT-IPS:type'] == 'floating'
+
+    - name: Delete floating IP for web_vm
+      openstack.cloud.floating_ip:
+        cloud: kakao-cloud
+        state: absent
+        purge: true
+        server: "{{ web_vm.servers[0].id }}"
+        floating_ip_address: "{{ web_floating_ip }}"
+        network: "floating_ip.network_id"
+
+    - name: Extract floating IP address for bastion_vm
+      set_fact:
+        bastion_floating_ip: "{{ item.addr }}"
+      with_items: "{{ bastion_vm.servers[0].addresses | json_query('*[*]') }}"
+      ignore_errors: yes
+      when: item['OS-EXT-IPS:type'] == 'floating'
+
+    - name: Delete floating IP for bastion_vm
+      openstack.cloud.floating_ip:
+        cloud: kakao-cloud
+        state: absent
+        purge: true
+        server: "{{ bastion_vm.servers[0].id }}"
+        floating_ip_address: "{{ bastion_floating_ip }}"
+        network: "floating_ip.network_id"
+
+    - name: Extract floating IP address for bastion_vm
+      set_fact:
+        app_floating_ip: "{{ item.addr }}"
+      with_items: "{{ app_vm.servers[0].addresses | json_query('*[*]') }}"
+      ignore_errors: yes
+      when: item['OS-EXT-IPS:type'] == 'floating'
+
+    - name: Delete floating IP for app_vm
+      openstack.cloud.floating_ip:
+        cloud: kakao-cloud
+        state: absent
+        purge: true
+        server: "{{ app_vm.servers[0].id }}"
+        floating_ip_address: "{{ app_floating_ip }}"
+        network: "floating_ip.network_id"
+      ignore_errors: yes
+
+
+    ## Delete security groups
+    - name: Define security group names
+      set_fact:
+        security_group_names:
+          - app-sg
+          - bastion-sg
+          - web-sg
+
+    - name: Delete security groups
+      openstack.cloud.security_group:
+        cloud: kakao-cloud
+        state: absent
+        name: "{{ item }}"
+      loop: "{{ security_group_names }}"
+
+    ## Delete key pairs
+    - name: Delete key pairs
+      openstack.cloud.keypair:
+        cloud: kakao-cloud
+        state: absent
+        name: "{{ vm.key_pair }}"
+
+    - name: Remove key pair files if they exist
+      file:
+        path: "./{{ vm.key_pair }}.pem"
+        state: absent

@@ -14,3 +14,8 @@
   loop: "{{ subnet_list_output.stdout | from_json }}"
   when: item.ID == app_network.subnet_id
 
+- name: Parse subnet list and find matching network address
+  set_fact:
+    lb_network_id: "{{ item.Network }}"
+  loop: "{{ subnet_list_output.stdout | from_json }}"
+  when: item.ID == lb.subnet_id
