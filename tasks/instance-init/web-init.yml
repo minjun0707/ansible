@@ -34,7 +34,7 @@
 - name: Run Docker container
   shell: >
     docker run -it \
-    -e SERVER_ENDPOINT=http://{{app_fixed_ip}}:8080 \
+    -e SERVER_ENDPOINT=http://{{app_floating_ip}}:8080 \
     -p 80:80 -p 443:443 \
     --name kakaocloud-library-client -d \
     kakaocloud-library-client
