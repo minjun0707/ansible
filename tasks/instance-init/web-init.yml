@@ -9,12 +9,12 @@
   command: bash install-requirements.sh
   args:
     chdir: './kakaocloud-library'
-  register: result
-  until: result.rc == 0
+  register: install_result
+  until: install_result.rc == 0
   retries: 5
   delay: 10
-  failed_when: result.rc != 0
-  changed_when: result.rc == 0
+  failed_when: install_result.rc != 0
+  changed_when: install_result.rc == 0
 
 - name: Stop and remove all running Docker containers
   shell: |
@@ -34,7 +34,7 @@
 - name: Run Docker container
   shell: >
     docker run -it \
-    -e SERVER_ENDPOINT=http://{{app_floating_ip}}:8080 \
+    -e SERVER_ENDPOINT=http://{{app_fixed_ip}}:8080 \
     -p 80:80 -p 443:443 \
     --name kakaocloud-library-client -d \
     kakaocloud-library-client

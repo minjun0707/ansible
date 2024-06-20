@@ -9,6 +9,12 @@
   command: bash install-requirements.sh
   args:
     chdir: './kakaocloud-library'
+  register: install_result
+  until: install_result.rc == 0
+  retries: 5
+  delay: 10
+  failed_when: install_result.rc != 0
+  changed_when: install_result.rc == 0
 
 - name: Stop and Remove all running Docker containers
   shell: |
@@ -19,6 +25,10 @@
   shell: >
     docker build -q -f /home/ubuntu/kakaocloud-library/server/deploy/Dockerfile /home/ubuntu/kakaocloud-library/server -t kakaocloud-library-server
   register: build_server_result
+  retries: 5
+  delay: 10
+  failed_when: build_server_result.rc != 0
+  changed_when: build_server_result.rc == 0
 
 - name: Run Docker container
   shell: |
