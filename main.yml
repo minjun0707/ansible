@@ -1,10 +1,10 @@
-# - name: Create Keypair
-#   hosts: localhost
-#   vars_files:
-#     - ./vars/variables.yml
-#   tasks:
-#     - name: Include Keypair Creation Tasks
-#       include_tasks:  ./tasks/resource/keypair.yml
+- name: Create Keypair
+  hosts: localhost
+  vars_files:
+    - ./vars/variables.yml
+  tasks:
+    - name: Include Keypair Creation Tasks
+      include_tasks:  ./tasks/resource/keypair.yml
 
 - name: Retrieve Subnet List
   hosts: localhost
@@ -26,7 +26,6 @@
     - name: Provision App Instance
       include_tasks: ./tasks/resource/app-instance.yml
 
-
 - name: Initialize Web VM with Application
   hosts: web-vm
   vars_files:
@@ -34,7 +33,7 @@
   become: yes
   tasks:
     - name: Include Web Initialization Tasks
-      include_tasks: ./tasks/instance-init/web-init.yml
+      include_tasks: ./tasks/instance-init/web-init-old.yml
 
 - name: Initialize App VM with Application
   hosts: app-vm
@@ -43,4 +42,24 @@
   become: yes
   tasks:
     - name: Include App Initialization Tasks
-      include_tasks: ./tasks/instance-init/app-init.yml
+      include_tasks: ./tasks/instance-init/app-init-old.yml
+
+
+# - name: Initialize Web VM with Application
+#   hosts: web-vm
+#   vars_files:
+#     - ./vars/variables.yml
+#   become: yes
+#   tasks:
+#     - name: Include Web Initialization Tasks
+#       include_tasks: ./tasks/instance-init/web-init-new.yml
+
+# - name: Initialize App VM with Application
+#   hosts: app-vm
+#   vars_files:
+#     - ./vars/variables.yml
+#   become: yes
+#   tasks:
+#     - name: Include App Initialization Tasks
+#       include_tasks: ./tasks/instance-init/app-init-new.yml
+

@@ -59,6 +59,7 @@
         server: "{{ web_vm.servers[0].id }}"
         floating_ip_address: "{{ web_floating_ip }}"
         network: "floating_ip.network_id"
+      ignore_errors: yes
 
     - name: Extract floating IP address for bastion_vm
       set_fact:
@@ -75,6 +76,7 @@
         server: "{{ bastion_vm.servers[0].id }}"
         floating_ip_address: "{{ bastion_floating_ip }}"
         network: "floating_ip.network_id"
+      ignore_errors: yes
 
     - name: Extract floating IP address for bastion_vm
       set_fact:

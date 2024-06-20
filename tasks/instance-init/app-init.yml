@@ -1,7 +1,8 @@
-- name: Clone kic-library-react repository
+- name: Clone kakaocloud-library repository
   git:
-    repo: 'https://github.com/minjun0707/kakaocloud-library'
+    repo: 'https://github.com/kakaoenterprise/kakaocloud-tutorials'
     dest: './kakaocloud-library'
+    version: 'kakaocloud-library'
     force: yes
 
 - name: Run install-requirements.sh
@@ -9,52 +10,17 @@
   args:
     chdir: './kakaocloud-library'
 
-# - name: Export environment variables
-#   shell: |
-#     export PROFILE={{ app_env.PROFILE }}
-#     export MYSQL_HOST={{ app_env.MYSQL_HOST }}
-#     export DB_NAME={{ app_env.DB_NAME }}
-#     export DB_USERNAME={{ app_env.DB_USERNAME }}
-#     export DB_PASSWORD={{ app_env.DB_PASSWORD }}
-#     export REDIS_HOST={{ app_env.REDIS_HOST }}
-#     export REDIS_PORT={{ app_env.REDIS_PORT }}
-#   args:
-#     executable: /bin/bash
-#   become: yes
-
-- name: Clone kic-library-react repository
-  git:
-    repo: 'https://github.com/minjun0707/kakaocloud-library'
-    dest: './kakaocloud-library'
-    force: yes
-
-- name: Run install-requirements.sh
-  command: bash install-requirements.sh
-  args:
-    chdir: './kakaocloud-library'
-
-- name: Set environment variables
-  set_fact:
-    app_env:
-      PROFILE: 'local'
-      MYSQL_HOST: 'localhost'
-      DB_NAME: 'library'
-      DB_USERNAME: 'user'
-      DB_PASSWORD: 'password'
-      REDIS_HOST: 'localhost'
-      REDIS_PORT: '6379'
-
-- name: Stop and remove all running Docker containers
+- name: Stop and Remove all running Docker containers
   shell: |
     docker ps -q | xargs -r docker stop
     docker ps -a -q | xargs -r docker rm
 
-- name: Build Docker image for server
+- name: Build Docker image
   shell: >
     docker build -q -f /home/ubuntu/kakaocloud-library/server/deploy/Dockerfile /home/ubuntu/kakaocloud-library/server -t kakaocloud-library-server
   register: build_server_result
 
-- name: Run Docker container for server
+- name: Run Docker container
   shell: |
     docker run -it \
     -e PROFILE={{ app_env.PROFILE }} \
