@@ -1,45 +1,45 @@
-- name: Create keypair 
+- name: Create Keypair
   hosts: localhost
-  gather_facts: no
   vars_files:
-    - ./variables.yml
+    - ./vars/variables.yml
   tasks:
-    - name: Create keypair 
-      include_tasks: keypair.yml
+    - name: Include Keypair Creation Tasks
+      include_tasks:  ./tasks/resource/keypair.yml
 
-- name: Set Subnet list
+- name: Retrieve Subnet List
   hosts: localhost
-  gather_facts: no
   vars_files:
-    - ./variables.yml
+    - ./vars/variables.yml
   tasks:
-    - name: Subnet list
-      include_tasks: subnet.yml
+    - name: Include Subnet Listing Tasks
+      include_tasks: ./tasks/resource/network_id.yml
 
-- name: provisioning kc web & app
+- name: Provision Web, Bastion, and App Instances
   hosts: localhost
-  gather_facts: no
   vars_files:
-    - ./variables.yml
+    - ./vars/variables.yml
   tasks:
-    - name: web
-      include_tasks: web.yml
-    - name: bastion
-      include_tasks: bastion.yml
-    - name: app
-      include_tasks: app.yml
+    - name: Provision Web Instance
+      include_tasks: ./tasks/resource/web-instance.yml
+    - name: Provision Bastion Instancea
+      include_tasks: ./tasks/resource/bastion-instance.yml
+    - name: Provision App Instance
+      include_tasks: ./tasks/resource/app-instance.yml
 
-
-- name: Initialize VM with application
+- name: Initialize Web VM with Application
   hosts: web-vm
+  vars_files:
+    - ./vars/variables.yml
   become: yes
   tasks:
-    - include_tasks: web-init.yml
-    - include_tasks: web-env.yml
+    - name: Include Web Initialization Tasks
+      include_tasks: ./tasks/instance-init/web-init.yml
 
-- name: Initialize VM with application
+- name: Initialize App VM with Application
   hosts: app-vm
+  vars_files:
+    - ./vars/variables.yml
   become: yes
   tasks:
-    - include_tasks: app-init.yml
-    - include_tasks: app-env.yml
+    - name: Include App Initialization Tasks
+      include_tasks: ./tasks/instance-init/app-init.yml
