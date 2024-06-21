@@ -33,13 +33,6 @@
 - name: Run Docker container
   shell: |
     docker run -it \
-    -e PROFILE={{ app_env.PROFILE }} \
-    -e MYSQL_HOST={{ app_env.MYSQL_HOST }} \
-    -e DB_NAME={{ app_env.DB_NAME }} \
-    -e DB_USERNAME={{ app_env.DB_USERNAME }} \
-    -e DB_PASSWORD={{ app_env.DB_PASSWORD }} \
-    -e REDIS_HOST={{ app_env.REDIS_HOST }} \
-    -e REDIS_PORT={{ app_env.REDIS_PORT }} \
     -p 8080:8080 \
     --name kakaocloud-library-server -d \
     kakaocloud-library-server
