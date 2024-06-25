@@ -41,7 +41,6 @@
     -e REDIS_HOST={{ app_env.REDIS_HOST }} \
     -e REDIS_PORT={{ app_env.REDIS_PORT }} \
     -p 8080:8080 \
-    -p 8080:8080 \
     --name kakaocloud-library-server -d \
     kakaocloud-library-server
   when: build_server_result is succeeded
